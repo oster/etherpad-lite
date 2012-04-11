@@ -462,14 +462,26 @@ function handleUserChanges(client, message)
         var nlChangeset = Changeset.makeSplice(pad.text(), pad.text().length-1, 0, "\n");
         pad.appendRevision(nlChangeset);
       }
-        
-      exports.updatePadClients(pad, callback);
+
+//      exports.updatePadClients(pad, callback);
+      exports.updatePadClientWithADelay(pad, 3000, callback);
     }
   ], function(err)
   {
     ERR(err);
   });
 }
+
+exports.updatePadClientWithADelay = function(pad, delay, callback) {
+  // wait a bit of time before delivery
+  setTimeout(function()
+     {
+       exports.updatePadClients(pad, callback);
+     }, delay);
+}
+
+
+
 
 exports.updatePadClients = function(pad, callback)
 {       
