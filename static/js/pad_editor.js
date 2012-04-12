@@ -57,9 +57,29 @@ var padeditor = (function()
       self.initViewOptions();
       self.setViewOptions(initialViewOptions);
 
+      self.initDelayOptions();
+
       // view bar
       self.initViewZoom();
       $("#viewbarcontents").show();
+    },
+    initDelayOptions: function() 
+    {
+      //alert("pad_editor.js - initDelayOptions");
+      if (pad.padOptions.serverToClientsDelay != null)
+      {  
+	     $("#inputtext-delay").val(pad.padOptions.serverToClientsDelay);
+	  }
+      $("#inputtext-delay").bind("change", function(evt)
+        {
+          //alert($("#inputtext-delay").val());
+          pad.changePadOption('serverToClientsDelay', $("#inputtext-delay").val());
+        });  
+    },
+    setServerToClientsDelay: function(newDelay)
+    {
+	  //alert("pad_editor.js - setServerToClientsDelay");
+	  $("#inputtext-delay").val(newDelay);
     },
     initViewOptions: function()
     {

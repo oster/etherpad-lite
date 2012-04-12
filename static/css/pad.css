@@ -1140,6 +1140,12 @@ input[type=checkbox] {
  display: none;
 }
 
+#inputtext-delay {
+ width: 33%;
+ display: inline;
+ margin-top: 0px;	
+}
+
 .note {
  color: #ddd;
  font-size: 11px;

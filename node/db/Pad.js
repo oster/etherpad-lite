@@ -34,7 +34,7 @@ var Pad = function Pad(id) {
   this.publicStatus = false;
   this.passwordHash = null;
   this.id = id;
-
+  this.serverToClientsDelay = 0;
 };
 
 exports.Pad = Pad;
@@ -49,6 +49,10 @@ Pad.prototype.getHeadRevisionNumber = function getHeadRevisionNumber() {
 
 Pad.prototype.getPublicStatus = function getPublicStatus() {
   return this.publicStatus;
+};
+
+Pad.prototype.getServerToClientsDelay = function getServerToClientsDelay() {
+  return this.serverToClientsDelay;
 };
 
 Pad.prototype.appendRevision = function appendRevision(aChangeset, author) {
@@ -81,7 +85,8 @@ Pad.prototype.appendRevision = function appendRevision(aChangeset, author) {
                           head: this.head,
                           chatHead: this.chatHead,
                           publicStatus: this.publicStatus,
-                          passwordHash: this.passwordHash});
+                          passwordHash: this.passwordHash,
+                          serverToClientsDelay: this.getServerToClientsDelay});
 };
 
 Pad.prototype.getRevisionChangeset = function getRevisionChangeset(revNum, callback) {
@@ -345,6 +350,12 @@ Pad.prototype.init = function init(text, callback) {
         _this.passwordHash = value.passwordHash;
       else
         _this.passwordHash = null;
+
+      //ensure we have a local serverToClientsDelay variable
+      if(value.serverToClientsDelay != null)
+        _this.serverToClientsDelay = value.serverToClientsDelay;
+      else
+        _this.serverToClientsDelay = 0;
     }
     //this pad doesn't exist, so create it
     else
@@ -466,6 +477,11 @@ Pad.prototype.isCorrectPassword = function isCorrectPassword(password) {
 
 Pad.prototype.isPasswordProtected = function isPasswordProtected() {
   return this.passwordHash != null;
+};
+
+Pad.prototype.setServerToClientsDelay = function setServerToClientsDelay(serverToClientsDelay) {
+  this.serverToClientsDelay = serverToClientsDelay;
+  db.setSub("pad:"+this.id, ["serverToClientsDelay"], this.serverToClientsDelay);
 };
 
 /* Crypto helper methods */

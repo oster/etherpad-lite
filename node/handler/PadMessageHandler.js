@@ -191,12 +191,62 @@ exports.handleMessage = function(client, message)
   {
     handleSuggestUserName(client, message);
   }
+  else if(message.type == "COLLABROOM" && 
+          message.data.type == "CLIENT_MESSAGE" &&
+          message.data.payload.type == "padoptions" &&
+          message.data.payload.options.serverToClientsDelay != null)
+  {
+    handleDelayOptions(client, message);
+  }
   //if the message type is unknown, throw an exception
   else
   {
     messageLogger.warn("Dropped message, unknown Message Type " + message.type);
   }
 }
+
+
+/**
+ * Handles a Delay Options Message
+ * @param client the client that send this message
+ * @param message the message from the client
+ */
+function handleDelayOptions(client, message)
+{
+  var padId = session2pad[client.id];
+
+  async.series([
+    //get the pad
+    function(callback)
+    {
+      padManager.getPad(padId, function(err, _pad)
+      {
+        if(ERR(err, callback)) return;
+        pad = _pad;
+        callback();
+      });
+    },
+    // set the delay and broadcast the message to every clients
+    function(callback)
+    {
+      // set the delay
+      var delay = message.data.payload.options.serverToClientsDelay;
+      messageLogger.info("Updating serverToClientsDelay to " + delay + "on pad " + pad.id);
+      pad.setServerToClientsDelay(delay);
+
+      //broadcast the message to everyone on the pad
+      for(var i in pad2sessions[padId])
+      {
+        socketio.sockets.sockets[pad2sessions[padId][i]].json.send(message);
+      }
+      callback();
+    }
+  ], function(err)
+  {
+    ERR(err);
+  });
+}
+
 
 /**
  * Handles a Chat Message
@@ -477,7 +527,7 @@ exports.updatePadClientWithADelay = function(pad, delay, callback) {
   setTimeout(function()
      {
        exports.updatePadClients(pad, callback);
-     }, delay);
+     }, pad.getServerToClientsDelay());
 }
 
 
@@ -781,7 +831,8 @@ function handleClientReady(client, message)
         },
         "initialRevisionList": [],
         "initialOptions": {
-            "guestPolicy": "deny"
+            "guestPolicy": "deny",
+            "serverToClientsDelay": pad.getServerToClientsDelay()
         },
         "collab_client_vars": {
             "initialAttributedText": atext,

@@ -454,7 +454,8 @@ var pad = {
       isTitleEditable: pad.getIsProPad(),
       initialTitle: clientVars.initialTitle,
       initialPassword: clientVars.initialPassword,
-      guestPolicy: pad.padOptions.guestPolicy
+      guestPolicy: pad.padOptions.guestPolicy,
+      serverToClientsDelay: pad.padOptions.serverToClientsDelay
     }, this);
     padimpexp.init(this);
     padsavedrevs.init(clientVars.initialRevisionList, this);
@@ -529,6 +530,7 @@ var pad = {
   },
   changePadOption: function(key, value)
   {
+	//alert("pad.js - changePadOption -> collabClient.sendClientMessage");
     var options = {};
     options[key] = value;
     pad.handleOptionsChange(options);
@@ -568,6 +570,13 @@ var pad = {
       // order important here
       pad.padOptions.guestPolicy = opts.guestPolicy;
       paddocbar.setGuestPolicy(opts.guestPolicy);
+    }
+    if (opts.serverToClientsDelay)
+    {
+	  // TODO: we might control that it is an integer value !
+	  //alert("pad.js - handleOptionsChange - serverToClientsDelay");
+	  pad.padOptions.serverToClientsDelay = opts.serverToClientsDelay;
+	  padeditor.setServerToClientsDelay(opts.serverToClientsDelay);
     }
   },
   getPadOptions: function()
