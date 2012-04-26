@@ -21,7 +21,7 @@
  */
 
 var chat = require('/chat').chat;
-
+var vector_clock = require('/VectorClock').VectorClock;
 // Dependency fill on init. This exists for `pad.socket` only.
 // TODO: bind directly to the socket.
 var pad = undefined;
@@ -155,14 +155,20 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options, _pad)
     var userChangesData = editor.prepareUserChangeset();
     if (userChangesData.changeset)
     {
+//alert("userid =" +userId);
+ 	vector_clock.inc(userId);
+	//var str = vector_clock.toStr();
+
       lastCommitTime = t;
       state = "COMMITTING";
       stateMessage = {
         type: "USER_CHANGES",
         baseRev: rev,
         changeset: userChangesData.changeset,
-        apool: userChangesData.apool
+        apool: userChangesData.apool,
+        vector: vector_clock
       };
+
       stateMessageSocketId = socketId;
       sendMessage(stateMessage);
       sentMessage = true;
@@ -327,12 +333,17 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options, _pad)
     var wrapper = evt;
     if (wrapper.type != "COLLABROOM") return;
     var msg = wrapper.data;
+
     if (msg.type == "NEW_CHANGES")
     {
       var newRev = msg.newRev;
       var changeset = msg.changeset;
       var author = (msg.author || '');
       var apool = msg.apool;
+
+    alert("received: "+msg.type+" from: "+author);
+	vector_clock.inc(author);
+
       if (newRev != (rev + 1))
       {
         dmesg("bad message revision on NEW_CHANGES: " + newRev + " not " + (rev + 1));

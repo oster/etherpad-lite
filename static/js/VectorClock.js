@@ -1,33 +1,31 @@
-var VectorClock = function VectorClock() {
-	this.values = {};
-};
+var VectorClock = {};
 
-//exports.VectorClock = VectorClock;
-
-VectorClock.prototype.get = function get(padid){
-         if (this.values[padid]) {
-		return this.values[padid]; 				
+VectorClock.get = function get(userId){
+         if (VectorClock[userId]) {
+		return VectorClock[userId]; 				
 	 } else {
 		return 0;
 	 }
 };
 
-VectorClock.prototype.inc = function inc(padid){
-	var res = this.values[padid];				
+VectorClock.inc = function inc(userId){				
+	var res = VectorClock[userId];
 
 	if (! res) {
 		res = 0;		
 	} 
 	res = res + 1;
-	this.values[padid] = res;
+	VectorClock[userId] = res;
 	return res;
 };
 			
-VectorClock.prototype.toStr = function toStr(){
+VectorClock.toStr = function toStr(){
 	var res = " ";
    	
-	for (var prop in this.values) {
-       		res = res+'<'+prop+','+this.values[prop]+'> ; ';
+	for (var prop in VectorClock) {
+       		res = res+'<'+prop+','+VectorClock[prop]+'> ; ';
     	}
 	return res;
 };
+
+exports.VectorClock = VectorClock;

@@ -514,7 +514,7 @@ function handleUserChanges(client, message)
       }
 
 //      exports.updatePadClients(pad, callback);
-      exports.updatePadClientWithADelay(pad, 3000, callback);
+      exports.updatePadClientWithADelay(pad, callback);
     }
   ], function(err)
   {
@@ -522,7 +522,7 @@ function handleUserChanges(client, message)
   });
 }
 
-exports.updatePadClientWithADelay = function(pad, delay, callback) {
+exports.updatePadClientWithADelay = function(pad, callback) {
   // wait a bit of time before delivery
   setTimeout(function()
      {
