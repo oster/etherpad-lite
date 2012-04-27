@@ -31,6 +31,7 @@ var securityManager = require("../db/SecurityManager");
 var log4js = require('log4js');
 var messageLogger = log4js.getLogger("message");
 
+
 /**
  * A associative array that translates a session to a pad
  */
@@ -419,8 +420,78 @@ function handleUserChanges(client, message)
   var baseRev = message.data.baseRev;
   var wireApool = (AttributePoolFactory.createAttributePool()).fromJsonable(message.data.apool);
   var changeset = message.data.changeset;
-      
-  var r, apool, pad;
+   
+	console.log('cs= '+changeset);
+	var charIns = Changeset.unpack(changeset).charBank; 		
+  	var nbChar = Math.abs(Changeset.unpack(changeset).newLen - Changeset.unpack(changeset).oldLen) ; 		
+	var operation; 
+
+	if(changeset.indexOf(">",0) != -1){
+		if(nbChar != 0){
+			operation = "insertion";
+		}else if(charIns){
+			operation = "remplacement";
+		}else{
+			operation = "stylage";
+		}
+	}else{
+		operation = "suppression";
+	}
+	console.log("operation = "+operation);
+	console.log("nb chars = "+nbChar);
+	console.log("char insere = "+charIns);
+	var ops = Changeset.unpack(changeset).ops; 	
+	console.log("ops = "+ops);	
+	
+	var ind = 0;
+	var indI = 0;
+	var indS = 0;
+	var indK = 0;
+	var line = 0;
+	var iter = Changeset.opIterator(ops);
+  	while (iter.hasNext()) {
+		var ne =  iter.next();
+		var opch = ne.chars;
+		var opc = ne.opcode; 
+		var opl = ne.lines;
+		var opatt = ne.attribs;  
+		if(opc == '+'){
+			indI = ind;
+			if(opl == 0){	
+				ind += opch;
+			}else{
+				line = opl;
+			}
+		}else if(opc == '-'){
+			indS = ind;
+			if(opl == 0){	
+				ind += opch;
+			}else{
+				line = opl;
+			}
+		}else if(opc == '='){
+			indK = ind;
+			if(opl == 0){	
+				ind += opch;
+			}else{
+				line = opl;
+			}
+		} 		
+		console.log("test = "+iter.hasNext()+" opCode: "+opc+" opChars: "+opch+" opLines: "+opl+" opAttribs: "+opatt);
+	}
+ind--;
+line++;
+console.log("line = "+line+ " ,indice = "+ind);
+
+
+	var poolCS = message.data.attribPool;
+	console.log("poolCS = "+poolCS);
+	var vector_clock = message.data.vector; 
+        console.log('vc= '+message.data.vector);	
+  
+
+
+ var r, apool, pad;
     
   async.series([
     //get the pad

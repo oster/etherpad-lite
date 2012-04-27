@@ -155,9 +155,9 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options, _pad)
     var userChangesData = editor.prepareUserChangeset();
     if (userChangesData.changeset)
     {
-//alert("userid =" +userId);
+
  	vector_clock.inc(userId);
-	//var str = vector_clock.toStr();
+	var str = vector_clock.toStr();
 
       lastCommitTime = t;
       state = "COMMITTING";
@@ -166,7 +166,8 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options, _pad)
         baseRev: rev,
         changeset: userChangesData.changeset,
         apool: userChangesData.apool,
-        vector: vector_clock
+	attribPool: userChangesData.attribPool,
+        vector: str
       };
 
       stateMessageSocketId = socketId;
@@ -340,10 +341,11 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options, _pad)
       var changeset = msg.changeset;
       var author = (msg.author || '');
       var apool = msg.apool;
-
-    alert("received: "+msg.type+" from: "+author);
-	vector_clock.inc(author);
-
+	
+	if(author){
+    		alert("received: "+msg.type+" from: "+author);
+		vector_clock.inc(author);
+	}
       if (newRev != (rev + 1))
       {
         dmesg("bad message revision on NEW_CHANGES: " + newRev + " not " + (rev + 1));

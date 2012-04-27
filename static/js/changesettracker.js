@@ -179,11 +179,13 @@ function makeChangesetTracker(scheduler, apool, aceCallbacksProvider)
         var forWire = Changeset.prepareForWire(cs, apool);
         wireApool = forWire.pool.toJsonable();
         cs = forWire.translated;
+	var attribPool = forWire.pool.getAttrib(0);
       }
 
       var data = {
         changeset: cs,
-        apool: wireApool
+        apool: wireApool,
+	attribPool: attribPool
       };
       return data;
     },
