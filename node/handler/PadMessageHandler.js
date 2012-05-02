@@ -444,10 +444,7 @@ function handleUserChanges(client, message)
 	console.log("ops = "+ops);	
 	
 	var ind = 0;
-	var indI = 0;
-	var indS = 0;
-	var indK = 0;
-	var line = 0;
+	var line = 1;
 	var iter = Changeset.opIterator(ops);
   	while (iter.hasNext()) {
 		var ne =  iter.next();
@@ -455,32 +452,20 @@ function handleUserChanges(client, message)
 		var opc = ne.opcode; 
 		var opl = ne.lines;
 		var opatt = ne.attribs;  
-		if(opc == '+'){
-			indI = ind;
-			if(opl == 0){	
-				ind += opch;
-			}else{
-				line = opl;
-			}
-		}else if(opc == '-'){
-			indS = ind;
-			if(opl == 0){	
-				ind += opch;
-			}else{
-				line = opl;
+		if((opc == '+') || (opc == '-')){
+			if(opl != 0){	
+				line += opl;
 			}
 		}else if(opc == '='){
-			indK = ind;
 			if(opl == 0){	
 				ind += opch;
 			}else{
-				line = opl;
+				line += opl;
 			}
 		} 		
 		console.log("test = "+iter.hasNext()+" opCode: "+opc+" opChars: "+opch+" opLines: "+opl+" opAttribs: "+opatt);
 	}
-ind--;
-line++;
+
 console.log("line = "+line+ " ,indice = "+ind);
 
 
@@ -572,7 +557,7 @@ console.log("line = "+line+ " ,indice = "+ind);
         
       var thisAuthor = sessioninfos[client.id].author;
         
-      pad.appendRevision(changeset, thisAuthor);
+      pad.appendRevision(changeset, thisAuthor,vector_clock);
         
       var correctionChangeset = _correctMarkersInPad(pad.atext, pad.pool);
       if (correctionChangeset) {
@@ -912,6 +897,7 @@ function handleClientReady(client, message)
             "padId": message.padId,
             "historicalAuthorData": historicalAuthorData,
             "apool": apool,
+	    "vectorClock_rev": pad.getVectorClockRevision(),
             "rev": pad.getHeadRevisionNumber(),
             "globalPadId": message.padId
         },

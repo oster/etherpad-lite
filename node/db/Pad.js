@@ -15,6 +15,7 @@ var padManager = require("./PadManager");
 var padMessageHandler = require("../handler/PadMessageHandler");
 var readOnlyManager = require("./ReadOnlyManager");
 var crypto = require("crypto");
+var vectorClock = require("../../static/js/VectorClock");
 
 /**
  * Copied from the Etherpad source code. It converts Windows line breaks to Unix line breaks and convert Tabs to spaces
@@ -35,6 +36,7 @@ var Pad = function Pad(id) {
   this.passwordHash = null;
   this.id = id;
   this.serverToClientsDelay = 0;
+  this.vectorClock = {};
 };
 
 exports.Pad = Pad;
@@ -55,7 +57,11 @@ Pad.prototype.getServerToClientsDelay = function getServerToClientsDelay() {
   return this.serverToClientsDelay;
 };
 
-Pad.prototype.appendRevision = function appendRevision(aChangeset, author) {
+Pad.prototype.getVectorClockRevision = function getVectorClockRevision(){
+  return this.vectorClock;
+};
+
+Pad.prototype.appendRevision = function appendRevision(aChangeset, author,vc) {
   if(!author)
     author = '';
 
@@ -79,6 +85,8 @@ Pad.prototype.appendRevision = function appendRevision(aChangeset, author) {
     newRevData.meta.atext = this.atext;
   }
 
+  this.vectorClock = vc;
+ 
   db.set("pad:"+this.id+":revs:"+newRev, newRevData);
   db.set("pad:"+this.id, {atext: this.atext,
                           pool: this.pool.toJsonable(),
@@ -86,6 +94,7 @@ Pad.prototype.appendRevision = function appendRevision(aChangeset, author) {
                           chatHead: this.chatHead,
                           publicStatus: this.publicStatus,
                           passwordHash: this.passwordHash,
+			  vectorClock: this.vectorClock,
                           serverToClientsDelay: this.getServerToClientsDelay});
 };
 
