@@ -1,32 +1,37 @@
-var VectorClock = {};
+//var VectorClock = {};
 
 
-var tab={};
+//var tab={};
 
-VectorClock.get = function get(userId){
-         if (tab[userId]) {
-		return VectorClock.set[userId]; 				
+
+function VectorClock() {
+	this.tab = {};
+}
+
+VectorClock.prototype.get = function get(userId){
+     if (this.tab[userId]) {
+		return this.tab[userId]; 				
 	 } else {
 		return 0;
 	 }
 };
 
-VectorClock.inc = function inc(userId){				
-	var res = tab[userId];
+VectorClock.prototype.inc = function inc(userId){				
+	var res = this.tab[userId];
 
 	if (! res) {
 		res = 0;		
 	} 
 	res = res + 1;
-	tab[userId] = res;
+	this.tab[userId] = res;
 	return res;
 };
 			
-VectorClock.toStr = function toStr(){
+VectorClock.prototype.toStr = function toStr(){
 	var res = " ";
    	
-	for (var prop in tab) {
-       		res = res+'<'+prop+','+tab[prop]+'> ; ';
+	for (var prop in this.tab) {
+       		res = res+'<'+prop+','+this.tab[prop]+'> ; ';
     	}
 	return res;
 };

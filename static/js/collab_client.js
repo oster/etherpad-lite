@@ -21,7 +21,17 @@
  */
 
 var chat = require('/chat').chat;
-var vector_clock = require('/VectorClock').VectorClock;
+var vectorclockClass = require('/VectorClock').VectorClock;
+var vectorClock;
+//var v = new vectorclockClass;
+//v.inc("tutu");
+//var str = JSON.stringify(v);
+//var clone = JSON.parse(str);
+//clone.__proto__ = vectorclockClass.prototype;
+//alert(clone.inc("tutu"));
+
+//var vector_clock = new vectorclockClass;
+
 // Dependency fill on init. This exists for `pad.socket` only.
 // TODO: bind directly to the socket.
 var pad = undefined;
@@ -40,6 +50,22 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options, _pad)
   var rev = serverVars.rev;
   var padId = serverVars.padId;
   var globalPadId = serverVars.globalPadId;
+
+alert("collab_client.js - serverVars.vectorClock:"+serverVars.revVectorClock);
+
+//  var vectorClock = null;
+  if (serverVars.revVectorClock) 
+  { 
+	 vectorClock = JSON.parse(serverVars.revVectorClock);
+     vectorClock.__proto__ = vectorclockClass.prototype; 
+  } else
+  {
+     vectorClock = new vectorclockClass;
+  }
+
+alert("collab_client.js - vectorClock.tab "+vectorClock.tab);
+
+alert("collab_client.js - vectorClock:"+JSON.stringify(vectorClock));
 
   var state = "IDLE";
   var stateMessage;
@@ -156,8 +182,8 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options, _pad)
     if (userChangesData.changeset)
     {
 
- 	vector_clock.inc(userId);
-	var str = vector_clock.toStr();
+ 	vectorClock.inc(userId);
+	//var str = vector_clock.toStr();
 
       lastCommitTime = t;
       state = "COMMITTING";
@@ -166,8 +192,8 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options, _pad)
         baseRev: rev,
         changeset: userChangesData.changeset,
         apool: userChangesData.apool,
-	attribPool: userChangesData.attribPool,
-        vector: str
+	    attribPool: userChangesData.attribPool,
+        vectorClock: vectorClock // JSON.stringify?
       };
 
       stateMessageSocketId = socketId;
@@ -342,10 +368,11 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options, _pad)
       var author = (msg.author || '');
       var apool = msg.apool;
 	
-	if(author){
-    		alert("received: "+msg.type+" from: "+author);
-		vector_clock.inc(author);
-	}
+	  if (author)
+	  {
+        alert("received: "+msg.type+" from: "+author);
+        vectorClock.inc(author);
+	  }
       if (newRev != (rev + 1))
       {
         dmesg("bad message revision on NEW_CHANGES: " + newRev + " not " + (rev + 1));

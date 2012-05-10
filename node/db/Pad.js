@@ -15,7 +15,7 @@ var padManager = require("./PadManager");
 var padMessageHandler = require("../handler/PadMessageHandler");
 var readOnlyManager = require("./ReadOnlyManager");
 var crypto = require("crypto");
-var vectorClock = require("../../static/js/VectorClock");
+var vectorClock = new require("../../static/js/VectorClock").VectorClock;
 
 /**
  * Copied from the Etherpad source code. It converts Windows line breaks to Unix line breaks and convert Tabs to spaces
@@ -27,7 +27,6 @@ exports.cleanText = function (txt) {
 
 
 var Pad = function Pad(id) {
-
   this.atext = Changeset.makeAText("\n");
   this.pool = AttributePoolFactory.createAttributePool();
   this.head = -1;
@@ -36,7 +35,7 @@ var Pad = function Pad(id) {
   this.passwordHash = null;
   this.id = id;
   this.serverToClientsDelay = 0;
-  this.vectorClock = {};
+  //this.vectorClock = {};
 };
 
 exports.Pad = Pad;
@@ -61,7 +60,7 @@ Pad.prototype.getVectorClockRevision = function getVectorClockRevision(){
   return this.vectorClock;
 };
 
-Pad.prototype.appendRevision = function appendRevision(aChangeset, author,vc) {
+Pad.prototype.appendRevision = function appendRevision(aChangeset, author, vectorClock) {
   if(!author)
     author = '';
 
@@ -85,7 +84,7 @@ Pad.prototype.appendRevision = function appendRevision(aChangeset, author,vc) {
     newRevData.meta.atext = this.atext;
   }
 
-  this.vectorClock = vc;
+  this.vectorClock = vectorClock;
  
   db.set("pad:"+this.id+":revs:"+newRev, newRevData);
   db.set("pad:"+this.id, {atext: this.atext,
@@ -94,7 +93,7 @@ Pad.prototype.appendRevision = function appendRevision(aChangeset, author,vc) {
                           chatHead: this.chatHead,
                           publicStatus: this.publicStatus,
                           passwordHash: this.passwordHash,
-			  vectorClock: this.vectorClock,
+                          vectorClock: JSON.stringify(this.vectorClock),
                           serverToClientsDelay: this.getServerToClientsDelay});
 };
 
@@ -365,13 +364,21 @@ Pad.prototype.init = function init(text, callback) {
         _this.serverToClientsDelay = value.serverToClientsDelay;
       else
         _this.serverToClientsDelay = 0;
+
+      //ensure we have a local vectorClock variable
+      if(value.vectorClock != null)
+        //_this.vectorClock = value.vectorClock; // or 
+        //_this.vectorClock = _this.vectorClock.fromJsonable(value.vectorClock)
+        _this.vectorClock = JSON.parse(value.vectorClock);
+      else
+        _this.vectorClock = null;
     }
     //this pad doesn't exist, so create it
     else
     {
       var firstChangeset = Changeset.makeSplice("\n", 0, 0, exports.cleanText(text));
 
-      _this.appendRevision(firstChangeset, '');
+      _this.appendRevision(firstChangeset, '', new vectorClock);
     }
 
     callback(null);

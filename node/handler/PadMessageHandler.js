@@ -471,8 +471,8 @@ console.log("line = "+line+ " ,indice = "+ind);
 
 	var poolCS = message.data.attribPool;
 	console.log("poolCS = "+poolCS);
-	var vector_clock = message.data.vector; 
-        console.log('vc= '+message.data.vector);	
+	var vectorClock = message.data.vectorClock; 
+        console.log('vc= '+message.data.vectorClock);	
   
 
 
@@ -557,7 +557,7 @@ console.log("line = "+line+ " ,indice = "+ind);
         
       var thisAuthor = sessioninfos[client.id].author;
         
-      pad.appendRevision(changeset, thisAuthor,vector_clock);
+      pad.appendRevision(changeset, thisAuthor, vectorClock);
         
       var correctionChangeset = _correctMarkersInPad(pad.atext, pad.pool);
       if (correctionChangeset) {
@@ -881,6 +881,11 @@ function handleClientReady(client, message)
       var apool = attribsForWire.pool.toJsonable();
       atext.attribs = attribsForWire.translated;
       
+     var testvectorClock = pad.getVectorClockRevision();
+	 console.log("testvectorClock: "+testvectorClock);
+     var vectorClockString = JSON.stringify(pad.getVectorClockRevision());
+	 console.log("vectorClockString: "+vectorClockString);
+
       var clientVars = {
         "accountPrivs": {
             "maxRevisions": 100
@@ -897,7 +902,7 @@ function handleClientReady(client, message)
             "padId": message.padId,
             "historicalAuthorData": historicalAuthorData,
             "apool": apool,
-	    "vectorClock_rev": pad.getVectorClockRevision(),
+	        "revVectorClock": vectorClockString,
             "rev": pad.getHeadRevisionNumber(),
             "globalPadId": message.padId
         },
