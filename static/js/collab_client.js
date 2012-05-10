@@ -29,6 +29,7 @@ function getSocket() {
   return pad && pad.socket;
 }
 
+
 /** Call this when the document is ready, and a new Ace2Editor() has been created and inited.
     ACE's ready callback does not need to have fired yet.
     "serverVars" are from calling doc.getCollabClientVars() on the server. */
@@ -40,6 +41,12 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options, _pad)
   var rev = serverVars.rev;
   var padId = serverVars.padId;
   var globalPadId = serverVars.globalPadId;
+
+  var s = serverVars.vectorClock_rev;
+
+//vector_clock  = s;
+
+//vector_clock = "13";
 
   var state = "IDLE";
   var stateMessage;
@@ -155,7 +162,7 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options, _pad)
     var userChangesData = editor.prepareUserChangeset();
     if (userChangesData.changeset)
     {
-
+	vector_clock
  	vector_clock.inc(userId);
 	var str = vector_clock.toStr();
 
@@ -167,7 +174,9 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options, _pad)
         changeset: userChangesData.changeset,
         apool: userChangesData.apool,
 	attribPool: userChangesData.attribPool,
-        vector: str
+        vector: str,
+	//padid: padId
+	userId: userId
       };
 
       stateMessageSocketId = socketId;
