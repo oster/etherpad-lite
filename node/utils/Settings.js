@@ -41,6 +41,18 @@ exports.dbType = "dirty";
  * This setting is passed with dbType to ueberDB to set up the database
  */
 exports.dbSettings = { "filename" : "../var/dirty.db" };
+
+/*
+ * The Type of the database of changeset
+ */
+
+exports.dbcsType = "dirty";
+/**
+ * This setting is passed with dbcsType to ueberDB to set up the database
+ */
+exports.dbcsSettings = { "filename" : "../var/dirtyCS.db" };
+
+
 /**
  * The default Text of a new pad
  */
