@@ -39,6 +39,7 @@ function getSocket() {
   return pad && pad.socket;
 }
 
+
 /** Call this when the document is ready, and a new Ace2Editor() has been created and inited.
     ACE's ready callback does not need to have fired yet.
     "serverVars" are from calling doc.getCollabClientVars() on the server. */
@@ -181,9 +182,7 @@ alert("collab_client.js - vectorClock:"+JSON.stringify(vectorClock));
     var userChangesData = editor.prepareUserChangeset();
     if (userChangesData.changeset)
     {
-
- 	vectorClock.inc(userId);
-	//var str = vector_clock.toStr();
+      vectorClock.inc(userId);
 
       lastCommitTime = t;
       state = "COMMITTING";
@@ -194,6 +193,8 @@ alert("collab_client.js - vectorClock:"+JSON.stringify(vectorClock));
         apool: userChangesData.apool,
 	    attribPool: userChangesData.attribPool,
         vectorClock: vectorClock // JSON.stringify?
+	    //padid: padId
+	    userId: userId
       };
 
       stateMessageSocketId = socketId;

@@ -30,6 +30,7 @@ var settings = require('../utils/Settings');
 var securityManager = require("../db/SecurityManager");
 var log4js = require('log4js');
 var messageLogger = log4js.getLogger("message");
+var dbcs = require("../db/Db_changeset").dbcs;
 
 
 /**
@@ -420,61 +421,10 @@ function handleUserChanges(client, message)
   var baseRev = message.data.baseRev;
   var wireApool = (AttributePoolFactory.createAttributePool()).fromJsonable(message.data.apool);
   var changeset = message.data.changeset;
-   
-	console.log('cs= '+changeset);
-	var charIns = Changeset.unpack(changeset).charBank; 		
-  	var nbChar = Math.abs(Changeset.unpack(changeset).newLen - Changeset.unpack(changeset).oldLen) ; 		
-	var operation; 
-
-	if(changeset.indexOf(">",0) != -1){
-		if(nbChar != 0){
-			operation = "insertion";
-		}else if(charIns){
-			operation = "remplacement";
-		}else{
-			operation = "stylage";
-		}
-	}else{
-		operation = "suppression";
-	}
-	console.log("operation = "+operation);
-	console.log("nb chars = "+nbChar);
-	console.log("char insere = "+charIns);
-	var ops = Changeset.unpack(changeset).ops; 	
-	console.log("ops = "+ops);	
-	
-	var ind = 0;
-	var line = 1;
-	var iter = Changeset.opIterator(ops);
-  	while (iter.hasNext()) {
-		var ne =  iter.next();
-		var opch = ne.chars;
-		var opc = ne.opcode; 
-		var opl = ne.lines;
-		var opatt = ne.attribs;  
-		if((opc == '+') || (opc == '-')){
-			if(opl != 0){	
-				line += opl;
-			}
-		}else if(opc == '='){
-			if(opl == 0){	
-				ind += opch;
-			}else{
-				line += opl;
-			}
-		} 		
-		console.log("test = "+iter.hasNext()+" opCode: "+opc+" opChars: "+opch+" opLines: "+opl+" opAttribs: "+opatt);
-	}
-
-console.log("line = "+line+ " ,indice = "+ind);
-
-
-	var poolCS = message.data.attribPool;
-	console.log("poolCS = "+poolCS);
-	var vectorClock = message.data.vectorClock; 
-        console.log('vc= '+message.data.vectorClock);	
+  var vectorClock = message.data.vectorClock; 
+//  var vector_clock = message.data.vector;
   
-
+  decryptageChangeset(message);
 
  var r, apool, pad;
     
@@ -577,6 +527,97 @@ console.log("line = "+line+ " ,indice = "+ind);
     ERR(err);
   });
 }
+
+
+
+
+function decryptageChangeset(message){
+
+	var changeset = message.data.changeset;
+  	//var padid = message.data.padid;
+	var userName = message.data.userId;
+	var poolCS = message.data.attribPool;
+	var vector_clock = message.data.vectorClock;	
+	var charIns = Changeset.unpack(changeset).charBank; 		
+  	//var nbChar = Math.abs(Changeset.unpack(changeset).newLen - Changeset.unpack(changeset).oldLen) ; 
+	var ops = Changeset.unpack(changeset).ops; 		
+	var operation; 
+				
+	var ind = 0;
+	var line = 1;
+	var position = 0;
+	var nbCharInserted = 0;
+	var nbCharDeleted = 0;
+	var iter = Changeset.opIterator(ops);
+
+  	while (iter.hasNext()) {
+		var ne =  iter.next();
+		var opch = ne.chars;
+		var opc = ne.opcode; 
+		var opl = ne.lines;
+		var opatt = ne.attribs; 
+
+		if(opc == '+'){
+			if(opl != 0){	
+				line += opl;
+			}
+			nbCharInserted += opch;
+		}else if(opc == '-'){
+			if(opl != 0){	
+				line += opl;
+			}
+			nbCharDeleted += opch;
+		}else if(opc == '='){
+			if(opl == 0){	
+				ind += opch;
+				position += opch;
+			}else{
+				line += opl;
+				 position += opch;
+			}
+		} 		
+		console.log("test = "+iter.hasNext()+" opCode: "+opc+" opChars: "+opch+" opLines: "+opl+" opAttribs: "+opatt);
+	}
+	var positionLine = line;
+	var positionLineIndice = ind;
+					
+	if(nbCharInserted && nbCharDeleted){
+		operation = "remplacement";
+	}else if(nbCharInserted){
+		operation = "insertion";		
+	}else if(nbCharDeleted){
+		operation = "suppression";
+	}else{
+		operation = "stylage";
+	}
+	
+	console.log('cs= '+changeset);
+	console.log("ops = "+ops);
+	console.log("operation = "+operation);
+	//console.log("nb chars = "+nbChar);
+	console.log("char insere = "+charIns);
+	console.log("nb_CharInserted= "+nbCharInserted);
+	console.log(" nb_CharDeleted= "+nbCharDeleted);
+	console.log("line = "+line+ " ,indice = "+ind); 
+	console.log("position = "+position);	
+	console.log("poolCS = "+poolCS);	 
+        console.log('vc= '+message.data.vector);	
+  
+	dbcs.set("vectorClock:"+vector_clock, {changeset: changeset,
+                          operation: operation,
+                          //number_chars: nbChar,                          
+                          ops_changeset: ops,
+			  number_charDeleted : nbCharDeleted,	
+			  number_charInserted : nbCharInserted,
+			  chars_inserted: charIns,
+                          positionLine: positionLine,
+			  positionLineIndice: positionLineIndice,
+			  position : position,
+			  userId: userName,
+                          poolCS: poolCS});
+}
+
+
 
 exports.updatePadClientWithADelay = function(pad, callback) {
   // wait a bit of time before delivery

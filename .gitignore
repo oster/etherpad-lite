@@ -7,6 +7,7 @@ bin/abiword.exe
 bin/node.exe
 etherpad-lite-win.zip
 var/dirty.db
+var/dirtyCS.db
 bin/convertSettings.json
 *~
 *.patch

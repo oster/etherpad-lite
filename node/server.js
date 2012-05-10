@@ -27,6 +27,7 @@ var socketio = require('socket.io');
 var fs = require('fs');
 var settings = require('./utils/Settings');
 var db = require('./db/DB');
+var dbcs = require("./db/Db_changeset");
 var async = require('async');
 var express = require('express');
 var path = require('path');
@@ -73,6 +74,11 @@ async.waterfall([
   function (callback)
   {
     db.init(callback);
+  },
+  //initalize the database of changeset
+  function (callback)
+  {
+    dbcs.init(callback);
   },
   //initalize the http server
   function (callback)
@@ -438,9 +444,17 @@ async.waterfall([
       {
         console.log("db sucessfully closed.");
         
+        //process.exit(0);
+      });
+
+      //do the dbcs shutdown
+      dbcs.dbcs.doShutdown(function()
+      {
+        console.log("dbcs sucessfully closed.");
+        
         process.exit(0);
       });
-      
+
       setTimeout(function(){
         process.exit(1);
       }, 3000);
