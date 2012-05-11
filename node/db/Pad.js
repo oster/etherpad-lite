@@ -93,7 +93,8 @@ Pad.prototype.appendRevision = function appendRevision(aChangeset, author, vecto
                           chatHead: this.chatHead,
                           publicStatus: this.publicStatus,
                           passwordHash: this.passwordHash,
-                          vectorClock: JSON.stringify(this.vectorClock),
+                          //vectorClock: JSON.stringify(this.vectorClock),
+                          vectorClock: this.vectorClock,
                           serverToClientsDelay: this.getServerToClientsDelay});
 };
 
@@ -209,7 +210,7 @@ Pad.prototype.setText = function setText(newText) {
   var changeset = Changeset.makeSplice(oldText, 0, oldText.length-1, newText);
 
   //append the changeset
-  this.appendRevision(changeset);
+  this.appendRevision(changeset, 'api', new vectorClock); // TODO: we should retrieved the most recent vectorclock
 };
 
 Pad.prototype.appendChatMessage = function appendChatMessage(text, userId, time) {
@@ -367,9 +368,9 @@ Pad.prototype.init = function init(text, callback) {
 
       //ensure we have a local vectorClock variable
       if(value.vectorClock != null)
-        //_this.vectorClock = value.vectorClock; // or 
+        _this.vectorClock = value.vectorClock; // or 
         //_this.vectorClock = _this.vectorClock.fromJsonable(value.vectorClock)
-        _this.vectorClock = JSON.parse(value.vectorClock);
+        //_this.vectorClock = JSON.parse(value.vectorClock);
       else
         _this.vectorClock = null;
     }

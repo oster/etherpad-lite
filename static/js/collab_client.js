@@ -183,7 +183,6 @@ alert("collab_client.js - vectorClock:"+JSON.stringify(vectorClock));
     if (userChangesData.changeset)
     {
       vectorClock.inc(userId);
-
       lastCommitTime = t;
       state = "COMMITTING";
       stateMessage = {
@@ -192,7 +191,7 @@ alert("collab_client.js - vectorClock:"+JSON.stringify(vectorClock));
         changeset: userChangesData.changeset,
         apool: userChangesData.apool,
 	    attribPool: userChangesData.attribPool,
-        vectorClock: vectorClock // JSON.stringify?
+            vectorClock: vectorClock, // JSON.stringify?
 	    //padid: padId
 	    userId: userId
       };
@@ -369,11 +368,11 @@ alert("collab_client.js - vectorClock:"+JSON.stringify(vectorClock));
       var author = (msg.author || '');
       var apool = msg.apool;
 	
-	  if (author)
-	  {
+	  //if (author)
+	  //{
         alert("received: "+msg.type+" from: "+author);
         vectorClock.inc(author);
-	  }
+	  //}
       if (newRev != (rev + 1))
       {
         dmesg("bad message revision on NEW_CHANGES: " + newRev + " not " + (rev + 1));

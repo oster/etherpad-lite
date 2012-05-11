@@ -32,6 +32,8 @@ var log4js = require('log4js');
 var messageLogger = log4js.getLogger("message");
 var dbcs = require("../db/Db_changeset").dbcs;
 
+var vc = require("../../static/js/VectorClock").VectorClock;
+
 
 /**
  * A associative array that translates a session to a pad
@@ -422,8 +424,7 @@ function handleUserChanges(client, message)
   var wireApool = (AttributePoolFactory.createAttributePool()).fromJsonable(message.data.apool);
   var changeset = message.data.changeset;
   var vectorClock = message.data.vectorClock; 
-//  var vector_clock = message.data.vector;
-  
+
   decryptageChangeset(message);
 
  var r, apool, pad;
@@ -509,14 +510,19 @@ function handleUserChanges(client, message)
         
       pad.appendRevision(changeset, thisAuthor, vectorClock);
         
+      var serverVC = vectorClock;
+      serverVC.__proto__ = vc.prototype;
+
       var correctionChangeset = _correctMarkersInPad(pad.atext, pad.pool);
       if (correctionChangeset) {
-        pad.appendRevision(correctionChangeset);
+        serverVC.inc("");
+        pad.appendRevision(correctionChangeset, "", serverVC);
       }
         
       if (pad.text().lastIndexOf("\n\n") != pad.text().length-2) {
         var nlChangeset = Changeset.makeSplice(pad.text(), pad.text().length-1, 0, "\n");
-        pad.appendRevision(nlChangeset);
+        serverVC.inc("");
+        pad.appendRevision(nlChangeset, "", serverVC);
       }
 
 //      exports.updatePadClients(pad, callback);
@@ -601,7 +607,7 @@ function decryptageChangeset(message){
 	console.log("line = "+line+ " ,indice = "+ind); 
 	console.log("position = "+position);	
 	console.log("poolCS = "+poolCS);	 
-        console.log('vc= '+message.data.vector);	
+        console.log('vc= '+vector_clock);	
   
 	dbcs.set("vectorClock:"+vector_clock, {changeset: changeset,
                           operation: operation,
