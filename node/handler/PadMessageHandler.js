@@ -551,7 +551,8 @@ function decryptageChangeset(message){
 	var decryptageVC = vector_clock;
         decryptageVC.__proto__ = vc.prototype;
 	var key  = "padid:"+padid+":userid:"+userName+":clock:"+decryptageVC.get(userName);
-		
+	var str = decryptageVC.toStr();
+	
 	var ind = 0;
 	var line = 1;
 	var position = 0;
@@ -609,7 +610,7 @@ function decryptageChangeset(message){
 	console.log("line = "+line+ " ,indice = "+ind); 
 	console.log("position = "+position);	
 	console.log("poolCS = "+poolCS);	 	
-  	console.log('vc= '+decryptageVC.toStr());
+  	console.log('vc= '+str);
 
 	dbcs.set("key:"+key, {changeset: changeset,
                           operation: operation,                                           

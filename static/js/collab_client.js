@@ -185,7 +185,7 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options, _pad)
         apool: userChangesData.apool,
 	    attribPool: userChangesData.attribPool,
             vectorClock: vectorClock, 
-	    padid: padId
+	    padid: padId,
 	    userId: userId
       };
 
