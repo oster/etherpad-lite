@@ -165,6 +165,41 @@ exports.setText = function(padID, text, callback)
   });
 }
 
+
+/**
+setServerToClientsDelay(padID, serverToClientsDelay) sets the serverToClientsDelay of a pad 
+
+Example returns:
+
+{code: 0, message:"ok", data: null}
+{code: 1, message:"padID does not exist", data: null}
+{code: 1, message:"invalid delay", data: null}
+*/
+exports.setServerToClientsDelay = function(padID, serverToClientsDelay, callback)
+{    
+  //get the pad
+  getPadSafe(padID, true, function(err, pad)
+  {
+    if(ERR(err, callback)) return;
+    
+    //check if serverToClientsDelay is an int
+    if(! is_int(serverToClientsDelay))
+    {
+      callback(new customError("invalid delay","apierror"));
+      return;
+    }
+
+    //set the delay
+    pad.setServerToClientsDelay(serverToClientsDelay);
+    
+    //update the clients on the pad
+    padMessageHandler.notifyPadClientsAboutDelay(pad, serverToClientsDelay, callback);
+
+    //update the clients on the pad
+    padMessageHandler.updatePadClients(pad, callback); //useless but to get the right return code
+  });
+}
+
 /**
 getHTML(padID, [rev]) returns the html of a pad 
 

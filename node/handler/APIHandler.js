@@ -54,6 +54,7 @@ var functions = {
   "listSessionsOfAuthor"      : ["authorID"], 
   "getText"                   : ["padID", "rev"],
   "setText"                   : ["padID", "text"],
+  "setServerToClientsDelay"   : ["padID", "delay"],
   "getHTML"                   : ["padID", "rev"],
   "setHTML"                   : ["padID", "html"],
   "getRevisionsCount"         : ["padID"], 

@@ -636,7 +636,31 @@ exports.updatePadClientWithADelay = function(pad, callback) {
 }
 
 
+exports.notifyPadClientsAboutDelay = function(pad, serverToClientsDelay, callback)
+{
+  //skip this step if none is on this pad
+  if(!pad2sessions[pad.id])
+  {
+    callback();
+    return;
+  }
 
+  //forge the message
+  var messageToTheAllUsers = { "type":"COLLABROOM",
+                               "data":{ "type":"CLIENT_MESSAGE",
+                                        "payload":{ "type":"padoptions",
+                                                    "options":{ "serverToClientsDelay":serverToClientsDelay},
+                                                    "changedBy":"API"
+                                                  }
+                                      }
+                             };
+
+  //go trough all sessions on this pad
+  async.forEach(pad2sessions[pad.id], function(session, callback)
+  {
+      socketio.sockets.sockets[session].json.send(messageToTheAllUsers);
+  },callback);
+}
 
 exports.updatePadClients = function(pad, callback)
 {       
