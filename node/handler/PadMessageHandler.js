@@ -540,7 +540,7 @@ function handleUserChanges(client, message)
 function decryptageChangeset(message){
 
 	var changeset = message.data.changeset;
-  	//var padid = message.data.padid;
+  	var padid = message.data.padid;
 	var userName = message.data.userId;
 	var poolCS = message.data.attribPool;
 	var vector_clock = message.data.vectorClock;	
@@ -550,7 +550,7 @@ function decryptageChangeset(message){
 	
 	var decryptageVC = vector_clock;
         decryptageVC.__proto__ = vc.prototype;
-	var str  = decryptageVC.toStr();
+	var key  = "padid:"+padid+":userid:"+userName+":clock:"+decryptageVC.get(userName);
 		
 	var ind = 0;
 	var line = 1;
@@ -608,11 +608,10 @@ function decryptageChangeset(message){
 	console.log(" nb_CharDeleted= "+nbCharDeleted);
 	console.log("line = "+line+ " ,indice = "+ind); 
 	console.log("position = "+position);	
-	console.log("poolCS = "+poolCS);	 
-        //console.log('vc= '+vector_clock);	
-  	console.log('vc= '+str);
+	console.log("poolCS = "+poolCS);	 	
+  	console.log('vc= '+decryptageVC.toStr());
 
-	dbcs.set("vectorClock:"+/*vector_clock*/str, {changeset: changeset,
+	dbcs.set("key:"+key, {changeset: changeset,
                           operation: operation,                                           
                           ops_changeset: ops,
 			  number_charDeleted : nbCharDeleted,	
@@ -622,6 +621,7 @@ function decryptageChangeset(message){
 			  positionLineIndice: positionLineIndice,
 			  position : position,
 			  userId: userName,
+                          vector_clock: decryptageVC,
                           poolCS: poolCS});
 }
 

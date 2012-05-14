@@ -28,12 +28,15 @@ VectorClock.prototype.inc = function inc(userId){
 };
 			
 VectorClock.prototype.toStr = function toStr(){
+        return JSON.stringify(this.tab);
+/*
 	var res = " ";
    	
 	for (var prop in this.tab) {
        		res = res+'<'+prop+','+this.tab[prop]+'> ; ';
     	}
 	return res;
+*/
 };
 
 exports.VectorClock = VectorClock;
