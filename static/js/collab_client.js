@@ -52,9 +52,6 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options, _pad)
   var padId = serverVars.padId;
   var globalPadId = serverVars.globalPadId;
 
-alert("collab_client.js - serverVars.vectorClock:"+serverVars.revVectorClock);
-
-//  var vectorClock = null;
   if (serverVars.revVectorClock) 
   { 
 	 vectorClock = JSON.parse(serverVars.revVectorClock);
@@ -63,10 +60,6 @@ alert("collab_client.js - serverVars.vectorClock:"+serverVars.revVectorClock);
   {
      vectorClock = new vectorclockClass;
   }
-
-alert("collab_client.js - vectorClock.tab "+vectorClock.tab);
-
-alert("collab_client.js - vectorClock:"+JSON.stringify(vectorClock));
 
   var state = "IDLE";
   var stateMessage;
@@ -367,12 +360,9 @@ alert("collab_client.js - vectorClock:"+JSON.stringify(vectorClock));
       var changeset = msg.changeset;
       var author = (msg.author || '');
       var apool = msg.apool;
+		  
+      vectorClock.inc(author);
 	
-	  //if (author)
-	  //{
-        alert("received: "+msg.type+" from: "+author);
-        vectorClock.inc(author);
-	  //}
       if (newRev != (rev + 1))
       {
         dmesg("bad message revision on NEW_CHANGES: " + newRev + " not " + (rev + 1));

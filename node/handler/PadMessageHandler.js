@@ -545,10 +545,13 @@ function decryptageChangeset(message){
 	var poolCS = message.data.attribPool;
 	var vector_clock = message.data.vectorClock;	
 	var charIns = Changeset.unpack(changeset).charBank; 		
-  	//var nbChar = Math.abs(Changeset.unpack(changeset).newLen - Changeset.unpack(changeset).oldLen) ; 
 	var ops = Changeset.unpack(changeset).ops; 		
 	var operation; 
-				
+	
+	var decryptageVC = vector_clock;
+        decryptageVC.__proto__ = vc.prototype;
+	var str  = decryptageVC.toStr();
+		
 	var ind = 0;
 	var line = 1;
 	var position = 0;
@@ -582,7 +585,7 @@ function decryptageChangeset(message){
 				 position += opch;
 			}
 		} 		
-		console.log("test = "+iter.hasNext()+" opCode: "+opc+" opChars: "+opch+" opLines: "+opl+" opAttribs: "+opatt);
+		//console.log("test = "+iter.hasNext()+" opCode: "+opc+" opChars: "+opch+" opLines: "+opl+" opAttribs: "+opatt);
 	}
 	var positionLine = line;
 	var positionLineIndice = ind;
@@ -600,18 +603,17 @@ function decryptageChangeset(message){
 	console.log('cs= '+changeset);
 	console.log("ops = "+ops);
 	console.log("operation = "+operation);
-	//console.log("nb chars = "+nbChar);
 	console.log("char insere = "+charIns);
 	console.log("nb_CharInserted= "+nbCharInserted);
 	console.log(" nb_CharDeleted= "+nbCharDeleted);
 	console.log("line = "+line+ " ,indice = "+ind); 
 	console.log("position = "+position);	
 	console.log("poolCS = "+poolCS);	 
-        console.log('vc= '+vector_clock);	
-  
-	dbcs.set("vectorClock:"+vector_clock, {changeset: changeset,
-                          operation: operation,
-                          //number_chars: nbChar,                          
+        //console.log('vc= '+vector_clock);	
+  	console.log('vc= '+str);
+
+	dbcs.set("vectorClock:"+/*vector_clock*/str, {changeset: changeset,
+                          operation: operation,                                           
                           ops_changeset: ops,
 			  number_charDeleted : nbCharDeleted,	
 			  number_charInserted : nbCharInserted,
@@ -926,12 +928,9 @@ function handleClientReady(client, message)
       var atext = Changeset.cloneAText(pad.atext);
       var attribsForWire = Changeset.prepareForWire(atext.attribs, pad.pool);
       var apool = attribsForWire.pool.toJsonable();
-      atext.attribs = attribsForWire.translated;
-      
-     var testvectorClock = pad.getVectorClockRevision();
-	 console.log("testvectorClock: "+testvectorClock);
-     var vectorClockString = JSON.stringify(pad.getVectorClockRevision());
-	 console.log("vectorClockString: "+vectorClockString);
+      atext.attribs = attribsForWire.translated;      	 
+      var vectorClockString = JSON.stringify(pad.getVectorClockRevision());
+	 
 
       var clientVars = {
         "accountPrivs": {
