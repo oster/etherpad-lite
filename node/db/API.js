@@ -200,6 +200,46 @@ exports.setServerToClientsDelay = function(padID, serverToClientsDelay, callback
   });
 }
 
+
+/**
+getChat(padID) returns the chat records of a pad 
+
+Example returns:
+
+{code: 0, message:"ok", data: [{"text":"blabla","userId":"a.m3i9ZlXoApDoDBca","time":1337602861143}, "userName":null}, ...]
+{code: 1, message:"padID does not exist", data: null}
+*/
+exports.getChat = function(padID, callback)
+{
+  //get the pad
+  getPadSafe(padID, true, function(err, pad)
+  {
+    if(ERR(err, callback)) return;
+
+    if(pad.chatHead == -1)
+    {
+      callback(null, []);
+      return;
+    }
+
+    //get all entries out of the database
+    var entries = [];
+
+    // TODO: improve performance using async calls?
+    for (var entryNum=0; entryNum<=pad.chatHead; entryNum++)
+    {
+	   	pad.getChatMessage(entryNum, function(err, entry)
+	      {
+	        if(ERR(err, callback)) return;
+	        entries[entryNum] = entry;
+	      });
+    }
+
+    callback(null, entries);
+  });
+}
+
+
 /**
 getHTML(padID, [rev]) returns the html of a pad 
 

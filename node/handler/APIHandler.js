@@ -55,6 +55,7 @@ var functions = {
   "getText"                   : ["padID", "rev"],
   "setText"                   : ["padID", "text"],
   "setServerToClientsDelay"   : ["padID", "delay"],
+  "getChat"                   : ["padID"],
   "getHTML"                   : ["padID", "rev"],
   "setHTML"                   : ["padID", "html"],
   "getRevisionsCount"         : ["padID"], 
