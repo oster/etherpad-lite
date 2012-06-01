@@ -425,7 +425,11 @@ function handleUserChanges(client, message)
   var changeset = message.data.changeset;
   var vectorClock = message.data.vectorClock; 
 
-  decryptageChangeset(message);
+  var padid = message.data.padid;
+  var userName = message.data.userId;
+  var poolCS = message.data.attribPool;
+
+  decryptageChangeset(padid,userName,vectorClock,poolCS,changeset);
 
  var r, apool, pad;
     
@@ -515,13 +519,14 @@ function handleUserChanges(client, message)
 
       var correctionChangeset = _correctMarkersInPad(pad.atext, pad.pool);
       if (correctionChangeset) {
-        serverVC.inc("");
+        serverVC.inc("");//TODO: meme chose qu'en dessous ac le decryptageCS
         pad.appendRevision(correctionChangeset, "", serverVC);
       }
         
       if (pad.text().lastIndexOf("\n\n") != pad.text().length-2) {
         var nlChangeset = Changeset.makeSplice(pad.text(), pad.text().length-1, 0, "\n");
         serverVC.inc("");
+	decryptageChangeset(padid,"",vectorClock,poolCS,nlChangeset);
         pad.appendRevision(nlChangeset, "", serverVC);
       }
 
@@ -537,13 +542,8 @@ function handleUserChanges(client, message)
 
 
 
-function decryptageChangeset(message){
+function decryptageChangeset(padid,userName,vector_clock,poolCS,changeset){
 
-	var changeset = message.data.changeset;
-  	var padid = message.data.padid;
-	var userName = message.data.userId;
-	var poolCS = message.data.attribPool;
-	var vector_clock = message.data.vectorClock;	
 	var charIns = Changeset.unpack(changeset).charBank; 		
 	var ops = Changeset.unpack(changeset).ops; 		
 	var operation; 
@@ -956,7 +956,7 @@ function handleClientReady(client, message)
       atext.attribs = attribsForWire.translated;      	 
       var vectorClockString = JSON.stringify(pad.getVectorClockRevision());
 	 
-
+//console.log("PadMessageHandler->clientVar->serverToClientDelay ="+pad.getServerToClientsDelay());
       var clientVars = {
         "accountPrivs": {
             "maxRevisions": 100
