@@ -513,6 +513,7 @@ function handleUserChanges(client, message)
       var thisAuthor = sessioninfos[client.id].author;
         
       pad.appendRevision(changeset, thisAuthor, vectorClock);
+      var revisionCount = 1;
         
       var serverVC = vectorClock;
       serverVC.__proto__ = vc.prototype;
@@ -521,6 +522,7 @@ function handleUserChanges(client, message)
       if (correctionChangeset) {
         serverVC.inc("");//TODO: meme chose qu'en dessous ac le decryptageCS
         pad.appendRevision(correctionChangeset, "", serverVC);
+        ++revisionCount;
       }
         
       if (pad.text().lastIndexOf("\n\n") != pad.text().length-2) {
@@ -528,10 +530,11 @@ function handleUserChanges(client, message)
         serverVC.inc("");
 	decryptageChangeset(padid,"",vectorClock,poolCS,nlChangeset);
         pad.appendRevision(nlChangeset, "", serverVC);
+        ++revisionCount;
       }
 
 //      exports.updatePadClients(pad, callback);
-      exports.updatePadClientWithADelay(pad, callback);
+      exports.updatePadClientWithADelay(pad, revisionCount, callback);
     }
   ], function(err)
   {
@@ -600,7 +603,7 @@ function decryptageChangeset(padid,userName,vector_clock,poolCS,changeset){
 	}else{
 		operation = "stylage";
 	}
-	
+/*	
 	console.log('cs= '+changeset);
 	console.log("ops = "+ops);
 	console.log("operation = "+operation);
@@ -611,7 +614,7 @@ function decryptageChangeset(padid,userName,vector_clock,poolCS,changeset){
 	console.log("position = "+position);	
 	console.log("poolCS = "+poolCS);	 	
   	console.log('vc= '+str);
-
+*/
 	dbcs.set("key:"+key, {changeset: changeset,
                           operation: operation,                                           
                           ops_changeset: ops,
@@ -628,11 +631,12 @@ function decryptageChangeset(padid,userName,vector_clock,poolCS,changeset){
 
 
 
-exports.updatePadClientWithADelay = function(pad, callback) {
+exports.updatePadClientWithADelay = function(pad, revisionCount, callback) {
+  console.log("waiting - "+revisionCount);
   // wait a bit of time before delivery
   setTimeout(function()
      {
-       exports.updatePadClients(pad, callback);
+       exports.updatePadClients(pad, revisionCount, callback);
      }, pad.getServerToClientsDelay());
 }
 
@@ -663,8 +667,11 @@ exports.notifyPadClientsAboutDelay = function(pad, serverToClientsDelay, callbac
   },callback);
 }
 
-exports.updatePadClients = function(pad, callback)
+exports.updatePadClients = function(pad, revisionCount, callback)
 {       
+
+  console.log("firing - "+revisionCount);
+
   //skip this step if noone is on this pad
   if(!pad2sessions[pad.id])
   {
@@ -676,16 +683,20 @@ exports.updatePadClients = function(pad, callback)
   async.forEach(pad2sessions[pad.id], function(session, callback)
   {
     var lastRev = sessioninfos[session].rev;
-    
+    var c = 0;
+
     //https://github.com/caolan/async#whilst
     //send them all new changesets
     async.whilst(
-      function (){ return lastRev < pad.getHeadRevisionNumber()},
+      function (){ return c < revisionCount && lastRev < pad.getHeadRevisionNumber()},
       function(callback)
       {
         var author, revChangeset;
       
+        c++;
         var r = ++lastRev;
+
+       console.log("firing - "+c+"/"+revisionCount);
       
         async.parallel([
           function (callback)
@@ -738,7 +749,8 @@ exports.updatePadClients = function(pad, callback)
       
     if(sessioninfos[session] != null)
     {
-      sessioninfos[session].rev = pad.getHeadRevisionNumber();
+//      sessioninfos[session].rev = pad.getHeadRevisionNumber();
+      sessioninfos[session].rev = lastRev;
     }
   },callback);  
 }
