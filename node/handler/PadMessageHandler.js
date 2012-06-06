@@ -520,7 +520,8 @@ function handleUserChanges(client, message)
 
       var correctionChangeset = _correctMarkersInPad(pad.atext, pad.pool);
       if (correctionChangeset) {
-        serverVC.inc("");//TODO: meme chose qu'en dessous ac le decryptageCS
+        serverVC.inc("");
+		decryptageChangeset(padid, "", vectorClock, poolCS, correctionChangeset);
         pad.appendRevision(correctionChangeset, "", serverVC);
         ++revisionCount;
       }
@@ -528,7 +529,7 @@ function handleUserChanges(client, message)
       if (pad.text().lastIndexOf("\n\n") != pad.text().length-2) {
         var nlChangeset = Changeset.makeSplice(pad.text(), pad.text().length-1, 0, "\n");
         serverVC.inc("");
-	decryptageChangeset(padid,"",vectorClock,poolCS,nlChangeset);
+        decryptageChangeset(padid, "", vectorClock, poolCS, nlChangeset);
         pad.appendRevision(nlChangeset, "", serverVC);
         ++revisionCount;
       }
@@ -545,7 +546,7 @@ function handleUserChanges(client, message)
 
 
 
-function decryptageChangeset(padid,userName,vector_clock,poolCS,changeset){
+function decryptageChangeset(padid, userName, vector_clock, poolCS, changeset){
 
 	var charIns = Changeset.unpack(changeset).charBank; 		
 	var ops = Changeset.unpack(changeset).ops; 		
@@ -615,24 +616,24 @@ function decryptageChangeset(padid,userName,vector_clock,poolCS,changeset){
 	console.log("poolCS = "+poolCS);	 	
   	console.log('vc= '+str);
 */
-	dbcs.set("key:"+key, {changeset: changeset,
-                          operation: operation,                                           
-                          ops_changeset: ops,
-			  number_charDeleted : nbCharDeleted,	
-			  number_charInserted : nbCharInserted,
-			  chars_inserted: charIns,
-                          positionLine: positionLine,
-			  positionLineIndice: positionLineIndice,
-			  position : position,
-			  userId: userName,
-                          vector_clock: decryptageVC,
-                          poolCS: poolCS});
+	dbcs.set("key:"+key, { changeset: changeset,
+                           operation: operation,                                           
+                           ops_changeset: ops,
+                           number_charDeleted : nbCharDeleted,	
+                           number_charInserted : nbCharInserted,
+                           chars_inserted: charIns,
+                           positionLine: positionLine,
+                           positionLineIndice: positionLineIndice,
+                           position : position,
+                           userId: userName,
+                           vector_clock: decryptageVC,
+                           poolCS: poolCS
+                          });
 }
 
 
 
 exports.updatePadClientWithADelay = function(pad, revisionCount, callback) {
-  console.log("waiting - "+revisionCount);
   // wait a bit of time before delivery
   setTimeout(function()
      {
@@ -669,9 +670,6 @@ exports.notifyPadClientsAboutDelay = function(pad, serverToClientsDelay, callbac
 
 exports.updatePadClients = function(pad, revisionCount, callback)
 {       
-
-  console.log("firing - "+revisionCount);
-
   //skip this step if noone is on this pad
   if(!pad2sessions[pad.id])
   {
@@ -696,8 +694,6 @@ exports.updatePadClients = function(pad, revisionCount, callback)
         c++;
         var r = ++lastRev;
 
-       console.log("firing - "+c+"/"+revisionCount);
-      
         async.parallel([
           function (callback)
           {
