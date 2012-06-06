@@ -85,7 +85,7 @@ Pad.prototype.appendRevision = function appendRevision(aChangeset, author, vecto
   }
 
   this.vectorClock = vectorClock;
- 
+
   db.set("pad:"+this.id+":revs:"+newRev, newRevData);
   db.set("pad:"+this.id, {atext: this.atext,
                           pool: this.pool.toJsonable(),
@@ -95,7 +95,8 @@ Pad.prototype.appendRevision = function appendRevision(aChangeset, author, vecto
                           passwordHash: this.passwordHash,
                           //vectorClock: JSON.stringify(this.vectorClock),
                           vectorClock: this.vectorClock,
-                          serverToClientsDelay: this.getServerToClientsDelay});
+                         // serverToClientsDelay: this.getServerToClientsDelay});
+			serverToClientsDelay: this.serverToClientsDelay});
 };
 
 Pad.prototype.getRevisionChangeset = function getRevisionChangeset(revNum, callback) {
@@ -361,11 +362,11 @@ Pad.prototype.init = function init(text, callback) {
         _this.passwordHash = null;
 
       //ensure we have a local serverToClientsDelay variable
-      if(value.serverToClientsDelay != null)
+      if(value.serverToClientsDelay != null){
         _this.serverToClientsDelay = value.serverToClientsDelay;
-      else
+      }else{
         _this.serverToClientsDelay = 0;
-
+}
       //ensure we have a local vectorClock variable
       if(value.vectorClock != null)
         _this.vectorClock = value.vectorClock; // or 

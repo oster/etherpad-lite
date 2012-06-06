@@ -534,7 +534,8 @@ function handleUserChanges(client, message)
       }
 
 //      exports.updatePadClients(pad, callback);
-      exports.updatePadClientWithADelay(pad, revisionCount, callback);
+//exports.updatePadClientWithADelay(pad, revisionCount, callback);
+      exports.updatePadClientWithADelay(pad, revisionCount,vectorClock, callback);
     }
   ], function(err)
   {
@@ -631,12 +632,12 @@ function decryptageChangeset(padid,userName,vector_clock,poolCS,changeset){
 
 
 
-exports.updatePadClientWithADelay = function(pad, revisionCount, callback) {
+exports.updatePadClientWithADelay = function(pad, revisionCount,vectorClock, callback) {
   console.log("waiting - "+revisionCount);
   // wait a bit of time before delivery
   setTimeout(function()
      {
-       exports.updatePadClients(pad, revisionCount, callback);
+       exports.updatePadClients(pad, revisionCount,vectorClock, callback);
      }, pad.getServerToClientsDelay());
 }
 
@@ -667,7 +668,7 @@ exports.notifyPadClientsAboutDelay = function(pad, serverToClientsDelay, callbac
   },callback);
 }
 
-exports.updatePadClients = function(pad, revisionCount, callback)
+exports.updatePadClients = function(pad, revisionCount,vectorClock, callback)
 {       
 
   console.log("firing - "+revisionCount);
@@ -731,12 +732,13 @@ exports.updatePadClients = function(pad, revisionCount, callback)
             socketio.sockets.sockets[session].json.send({"type":"COLLABROOM","data":{type:"ACCEPT_COMMIT", newRev:r}});
           }
           else
-          {
+          { 	   
             var forWire = Changeset.prepareForWire(revChangeset, pad.pool);
             var wireMsg = {"type":"COLLABROOM","data":{type:"NEW_CHANGES", newRev:r,
                          changeset: forWire.translated,
                          apool: forWire.pool,
-                         author: author}};        
+                         author: author,
+			 vectorClock: vectorClock}};        
                          
             socketio.sockets.sockets[session].json.send(wireMsg);
           }
