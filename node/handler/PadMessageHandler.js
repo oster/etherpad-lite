@@ -425,7 +425,11 @@ function handleUserChanges(client, message)
   var changeset = message.data.changeset;
   var vectorClock = message.data.vectorClock; 
 
-  decryptageChangeset(message);
+  var padid = message.data.padid;
+  var userName = message.data.userId;
+  var poolCS = message.data.attribPool;
+
+  decryptageChangeset(padid,userName,vectorClock,poolCS,changeset);
 
  var r, apool, pad;
     
@@ -509,24 +513,28 @@ function handleUserChanges(client, message)
       var thisAuthor = sessioninfos[client.id].author;
         
       pad.appendRevision(changeset, thisAuthor, vectorClock);
+      var revisionCount = 1;
         
       var serverVC = vectorClock;
       serverVC.__proto__ = vc.prototype;
 
       var correctionChangeset = _correctMarkersInPad(pad.atext, pad.pool);
       if (correctionChangeset) {
-        serverVC.inc("");
+        serverVC.inc("");//TODO: meme chose qu'en dessous ac le decryptageCS
         pad.appendRevision(correctionChangeset, "", serverVC);
+        ++revisionCount;
       }
         
       if (pad.text().lastIndexOf("\n\n") != pad.text().length-2) {
         var nlChangeset = Changeset.makeSplice(pad.text(), pad.text().length-1, 0, "\n");
         serverVC.inc("");
+	decryptageChangeset(padid,"",vectorClock,poolCS,nlChangeset);
         pad.appendRevision(nlChangeset, "", serverVC);
+        ++revisionCount;
       }
 
 //      exports.updatePadClients(pad, callback);
-      exports.updatePadClientWithADelay(pad, callback);
+      exports.updatePadClientWithADelay(pad, revisionCount, callback);
     }
   ], function(err)
   {
@@ -537,13 +545,8 @@ function handleUserChanges(client, message)
 
 
 
-function decryptageChangeset(message){
+function decryptageChangeset(padid,userName,vector_clock,poolCS,changeset){
 
-	var changeset = message.data.changeset;
-  	var padid = message.data.padid;
-	var userName = message.data.userId;
-	var poolCS = message.data.attribPool;
-	var vector_clock = message.data.vectorClock;	
 	var charIns = Changeset.unpack(changeset).charBank; 		
 	var ops = Changeset.unpack(changeset).ops; 		
 	var operation; 
@@ -600,7 +603,7 @@ function decryptageChangeset(message){
 	}else{
 		operation = "stylage";
 	}
-	
+/*	
 	console.log('cs= '+changeset);
 	console.log("ops = "+ops);
 	console.log("operation = "+operation);
@@ -611,7 +614,7 @@ function decryptageChangeset(message){
 	console.log("position = "+position);	
 	console.log("poolCS = "+poolCS);	 	
   	console.log('vc= '+str);
-
+*/
 	dbcs.set("key:"+key, {changeset: changeset,
                           operation: operation,                                           
                           ops_changeset: ops,
@@ -628,11 +631,12 @@ function decryptageChangeset(message){
 
 
 
-exports.updatePadClientWithADelay = function(pad, callback) {
+exports.updatePadClientWithADelay = function(pad, revisionCount, callback) {
+  console.log("waiting - "+revisionCount);
   // wait a bit of time before delivery
   setTimeout(function()
      {
-       exports.updatePadClients(pad, callback);
+       exports.updatePadClients(pad, revisionCount, callback);
      }, pad.getServerToClientsDelay());
 }
 
@@ -663,8 +667,11 @@ exports.notifyPadClientsAboutDelay = function(pad, serverToClientsDelay, callbac
   },callback);
 }
 
-exports.updatePadClients = function(pad, callback)
+exports.updatePadClients = function(pad, revisionCount, callback)
 {       
+
+  console.log("firing - "+revisionCount);
+
   //skip this step if noone is on this pad
   if(!pad2sessions[pad.id])
   {
@@ -676,16 +683,20 @@ exports.updatePadClients = function(pad, callback)
   async.forEach(pad2sessions[pad.id], function(session, callback)
   {
     var lastRev = sessioninfos[session].rev;
-    
+    var c = 0;
+
     //https://github.com/caolan/async#whilst
     //send them all new changesets
     async.whilst(
-      function (){ return lastRev < pad.getHeadRevisionNumber()},
+      function (){ return c < revisionCount && lastRev < pad.getHeadRevisionNumber()},
       function(callback)
       {
         var author, revChangeset;
       
+        c++;
         var r = ++lastRev;
+
+       console.log("firing - "+c+"/"+revisionCount);
       
         async.parallel([
           function (callback)
@@ -738,7 +749,8 @@ exports.updatePadClients = function(pad, callback)
       
     if(sessioninfos[session] != null)
     {
-      sessioninfos[session].rev = pad.getHeadRevisionNumber();
+//      sessioninfos[session].rev = pad.getHeadRevisionNumber();
+      sessioninfos[session].rev = lastRev;
     }
   },callback);  
 }
@@ -956,7 +968,7 @@ function handleClientReady(client, message)
       atext.attribs = attribsForWire.translated;      	 
       var vectorClockString = JSON.stringify(pad.getVectorClockRevision());
 	 
-
+//console.log("PadMessageHandler->clientVar->serverToClientDelay ="+pad.getServerToClientsDelay());
       var clientVars = {
         "accountPrivs": {
             "maxRevisions": 100
