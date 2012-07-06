@@ -176,6 +176,7 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options, _pad)
     if (userChangesData.changeset)
     {
       vectorClock.inc(userId);
+	  var changeSetTimeStamp = (new Date()).getTime();
       lastCommitTime = t;
       state = "COMMITTING";
       stateMessage = {
@@ -186,7 +187,8 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options, _pad)
 	    attribPool: userChangesData.attribPool,
             vectorClock: vectorClock, 
 	    padid: padId,
-	    userId: userId
+	    userId: userId,
+		timestamp: changeSetTimeStamp
       };
 
       stateMessageSocketId = socketId;

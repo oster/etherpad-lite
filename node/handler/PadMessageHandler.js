@@ -424,12 +424,13 @@ function handleUserChanges(client, message)
   var wireApool = (AttributePoolFactory.createAttributePool()).fromJsonable(message.data.apool);
   var changeset = message.data.changeset;
   var vectorClock = message.data.vectorClock; 
+  var csTimestamp = message.data.timestamp;
 
   var padid = message.data.padid;
   var userName = message.data.userId;
   var poolCS = message.data.attribPool;
 
-  decryptageChangeset(padid,userName,vectorClock,poolCS,changeset);
+  decryptageChangeset(padid,userName,vectorClock,poolCS,changeset, csTimestamp);
 
  var r, apool, pad;
     
@@ -521,7 +522,7 @@ function handleUserChanges(client, message)
       var correctionChangeset = _correctMarkersInPad(pad.atext, pad.pool);
       if (correctionChangeset) {
         serverVC.inc("");
-		decryptageChangeset(padid, "", vectorClock, poolCS, correctionChangeset);
+		decryptageChangeset(padid, "", vectorClock, poolCS, correctionChangeset, (new Date()).getTime());
         pad.appendRevision(correctionChangeset, "", serverVC);
         ++revisionCount;
       }
@@ -529,7 +530,7 @@ function handleUserChanges(client, message)
       if (pad.text().lastIndexOf("\n\n") != pad.text().length-2) {
         var nlChangeset = Changeset.makeSplice(pad.text(), pad.text().length-1, 0, "\n");
         serverVC.inc("");
-        decryptageChangeset(padid, "", vectorClock, poolCS, nlChangeset);
+        decryptageChangeset(padid, "", vectorClock, poolCS, nlChangeset, (new Date()).getTime());
         pad.appendRevision(nlChangeset, "", serverVC);
         ++revisionCount;
       }
@@ -546,7 +547,7 @@ function handleUserChanges(client, message)
 
 
 
-function decryptageChangeset(padid, userName, vector_clock, poolCS, changeset){
+function decryptageChangeset(padid, userName, vector_clock, poolCS, changeset, timestamp){
 
 	var charIns = Changeset.unpack(changeset).charBank; 		
 	var ops = Changeset.unpack(changeset).ops; 		
@@ -627,6 +628,7 @@ function decryptageChangeset(padid, userName, vector_clock, poolCS, changeset){
                            position : position,
                            userId: userName,
                            vector_clock: decryptageVC,
+						   timestamp: timestamp,
                            poolCS: poolCS
                           });
 }
